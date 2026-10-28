@@ -1,0 +1,11 @@
+# Ignore archive files
+*.zip
+
+# System & OS Files
+.DS_Store
+Thumbs.db
+*.log
+
+# Editor files
+.vscode/
+.idea/
