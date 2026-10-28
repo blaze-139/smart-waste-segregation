@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Waste Segregation Assistant | Real-Time Classification & Guide</title>
+  <meta name="description" content="AI & heuristic waste segregation assistant helping identify biodegradable, recyclable, hazardous, and electronic waste streams. Aligned with EPA & Basel Convention standards.">
+
+  <!-- Google Fonts: Quicksand (Primary Sans) & Caveat (Cursive Quotes) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Quicksand:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Core Stylesheets -->
+  <link rel="stylesheet" href="css/style.css?v=4.2">
+  <link rel="stylesheet" href="css/animations.css?v=4.2">
+
+  <style>
+    /* Vibrant greenish-blue buttons with white text */
+    .scanner-btn,
+    .upload-photo-btn,
+    .live-photo-btn,
+    #search-scanner-btn,
+    #search-live-photo-btn,
+    .scanner-dropzone-upload-btn,
+    #scanner-dropzone-btn,
+    .scanner-capture-btn,
+    #scanner-capture-btn,
+    .ai-followup-attach-btn,
+    .ai-followup-cam-btn {
+      background: linear-gradient(180deg, #178582 0%, #0F6674 100%) !important;
+      color: #FFFFFF !important;
+      border: 1px solid #23A39B !important;
+      box-shadow: 0 3px 12px rgba(15, 118, 110, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    }
+    .scanner-btn *,
+    .upload-photo-btn *,
+    .live-photo-btn *,
+    #search-scanner-btn *,
+    #search-live-photo-btn *,
+    .scanner-dropzone-upload-btn *,
+    #scanner-dropzone-btn *,
+    .scanner-capture-btn *,
+    #scanner-capture-btn *,
+    .ai-followup-attach-btn *,
+    .ai-followup-cam-btn * {
+      color: #FFFFFF !important;
+      stroke: #FFFFFF !important;
+    }
+    .scanner-btn:hover,
+    .upload-photo-btn:hover,
+    .live-photo-btn:hover,
+    #search-scanner-btn:hover,
+    #search-live-photo-btn:hover,
+    .scanner-dropzone-upload-btn:hover,
+    #scanner-dropzone-btn:hover,
+    .scanner-capture-btn:hover,
+    #scanner-capture-btn:hover,
+    .ai-followup-attach-btn:hover,
+    .ai-followup-cam-btn:hover {
+      background: linear-gradient(180deg, #1EA19A 0%, #137785 100%) !important;
+      border-color: #3FE0D0 !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 5px 20px rgba(23, 133, 130, 0.55), 0 0 16px rgba(35, 163, 155, 0.45) !important;
+    }
+  </style>
+
+  <!-- Third-Party Libraries: Supabase, Chart.js & Three.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23639260' stroke-width='2'><path d='m7 19-3-3 3-3'/><path d='M4 16h11a4 4 0 0 0 4-4v-1'/><path d='m17 5 3 3-3 3'/><path d='M20 8H9a4 4 0 0 0-4 4v1'/></svg>">
+</head>
+<body>
+
+  <!-- Top Scroll Progress Indicator -->
+  <div id="scroll-progress-bar" class="scroll-progress-bar" aria-hidden="true"></div>
+
+  <!-- Application Header -->
+  <header class="app-header">
+    <div class="system-status-bar">
+      <div class="status-left">
+        <span class="status-pulse-dot" aria-hidden="true"></span>
+        <span>Eco Classification Engine</span>
+        <span>/</span>
+        <span>40+ Verified Domestic Entries</span>
+      </div>
+      <div class="status-right" style="display: flex; align-items: center; gap: 0.85rem;">
+        <div id="supabase-status-badge" class="supabase-status-pill" title="Supabase Database: Connecting...">
+          <span id="supabase-status-dot" class="status-pulse-dot" style="background: #3ECF8E; box-shadow: 0 0 8px #3ECF8E;"></span>
+          <span id="supabase-status-text">Supabase Live</span>
+        </div>
+        <span>EPA & Basel Convention Aligned</span>
+      </div>
+    </div>
+
+    <div class="header-inner">
+      <div class="brand-wrapper">
+        <div class="brand-symbol" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m7 19-3-3 3-3"></path><path d="M4 16h11a4 4 0 0 0 4-4v-1"></path>
+            <path d="m17 5 3 3-3 3"></path><path d="M20 8H9a4 4 0 0 0-4 4v1"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">Smart Waste Assistant</h1>
+          <span class="brand-tag">Real-Time Waste Classification & Segregation Guide</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" id="header-scanner-trigger-btn" class="header-scanner-btn" title="Open AI Visual Waste Scanner">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+          <span>AI Photo Scanner</span>
+          <span class="scanner-live-dot" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Fluid Full-Width Horizontal Central Tab Switcher -->
+    <nav class="main-tabs-nav" aria-label="Primary Application Views">
+      <div class="tabs-nav-inner" role="tablist">
+        <button type="button" class="tab-nav-btn active" data-tab="search" id="tab-btn-search" role="tab" aria-selected="true" aria-controls="pane-search">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          <span>Search Waste</span>
+        </button>
+
+        <button type="button" class="tab-nav-btn" data-tab="categories" id="tab-btn-categories" role="tab" aria-selected="false" aria-controls="pane-categories">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>
+          <span>Category Guide</span>
+        </button>
+
+        <button type="button" class="tab-nav-btn" data-tab="matters" id="tab-btn-matters" role="tab" aria-selected="false" aria-controls="pane-matters">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span>Why It Matters</span>
+        </button>
+
+        <button type="button" class="tab-nav-btn" data-tab="analytics" id="tab-btn-analytics" role="tab" aria-selected="false" aria-controls="pane-analytics">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          <span>Global Data & Graphs</span>
+        </button>
+
+        <button type="button" class="tab-nav-btn" data-tab="lab" id="tab-btn-lab" role="tab" aria-selected="false" aria-controls="pane-lab">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+          <span>3D Bin Lab & Game</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- =========================================================================
+         TAB 1: SEARCH WASTE
+         ========================================================================= -->
+    <div class="tab-pane active" id="pane-search" role="tabpanel" aria-labelledby="tab-btn-search">
+      <section class="hero-section">
+        <div class="hero-badge">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"></path></svg>
+          <span>Deterministic Waste Classifier</span>
+        </div>
+
+        <!-- Headline in Soft Sand -->
+        <h2 class="hero-title">Sort it out.</h2>
+
+        <!-- Subtext Quote in Caveat Cursive -->
+        <p class="hero-subtitle-cursive">
+          "Heal the world, make it a better place. Start by putting that plastic bottle in the right bin."
+        </p>
+
+        <!-- Search Bar Frame with #1D1F1D Dark Surface & Crisp Faint Border -->
+        <div class="search-container">
+          <div class="search-bar-frame">
+            <div class="search-icon-slot" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            </div>
+            <input 
+              type="text" 
+              id="search-input" 
+              class="search-input" 
+              placeholder="Ask EcoSage AI or search any item (e.g. 'Can I recycle greasy pizza box?', 'Lithium batteries')..." 
+              autocomplete="off"
+              aria-label="Search waste item or ask EcoSage AI"
+            >
+            <div class="search-actions-group">
+              <input type="file" id="search-image-file-input" accept="image/*" style="display:none;">
+              <input type="file" id="search-camera-file-input" accept="image/*" capture="environment" style="display:none;">
+
+              <button type="button" id="search-live-photo-btn" class="scanner-btn live-photo-btn" title="Access device camera, snap live photo & directly upload" style="background: linear-gradient(180deg, #178582 0%, #0F6674 100%) !important; color: #FFFFFF !important; border: 1px solid #23A39B !important;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #FFFFFF !important;">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                <span style="color: #FFFFFF !important;">Live Photo</span>
+              </button>
+
+              <button type="button" id="search-scanner-btn" class="scanner-btn upload-photo-btn" title="Upload waste photo from device (or drag & drop here)" style="background: linear-gradient(180deg, #178582 0%, #0F6674 100%) !important; color: #FFFFFF !important; border: 1px solid #23A39B !important;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #FFFFFF !important;">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span style="color: #FFFFFF !important;">Upload Photo</span>
+              </button>
+
+              <button type="button" id="surprise-btn" class="surprise-btn" title="Inspect a random item from database">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+                <span>Surprise Me</span>
+              </button>
+
+              <button type="button" id="search-submit-btn" class="search-submit-btn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"></path></svg>
+                <span>Ask EcoSage AI</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Staged Photo Chip (when image is uploaded or dropped) -->
+          <div id="search-staged-container" class="search-staged-container" style="display: none;">
+            <div class="staged-photo-chip">
+              <img id="search-staged-thumb" class="staged-photo-thumb" src="" alt="Staged photo">
+              <div class="staged-photo-meta">
+                <span id="search-staged-name" class="staged-photo-name">photo.jpg</span>
+                <span class="staged-photo-badge">⚡ Attached &bull; Ready for Vision Scan</span>
+              </div>
+              <button type="button" id="search-staged-submit-btn" class="staged-classify-btn" title="Classify photo now">Classify &rarr;</button>
+              <button type="button" id="search-staged-remove-btn" class="staged-remove-btn" title="Remove photo">&times;</button>
+            </div>
+          </div>
+
+          <div id="autocomplete-dropdown" class="autocomplete-dropdown" role="listbox"></div>
+
+          <!-- Dual Engine Status Row -->
+          <div class="search-engine-status-row">
+            <span class="ai-live-badge"><span class="status-pulse-dot" style="width: 6px; height: 6px;" aria-hidden="true"></span> Dual Engine: EPA Database + Gemini 3.5 Flash Multimodal Vision</span>
+            <span class="search-hint-text">Upload photos, type items, or ask questions &bull; Drag & drop or paste supported</span>
+          </div>
+        </div>
+
+        <!-- Expanded Popular Search Options & AI Prompts -->
+        <div class="quick-chips-wrapper">
+          <span class="chips-label">Popular Searches & AI Prompts:</span>
+          <button type="button" class="chip-btn" data-item="Banana peel">Banana peel</button>
+          <button type="button" class="chip-btn" data-item="Plastic water bottle">Plastic bottle</button>
+          <button type="button" class="chip-btn" data-item="Lithium-ion batteries">Lithium batteries</button>
+          <button type="button" class="chip-btn" data-item="Can I recycle greasy pizza boxes?">Greasy pizza box?</button>
+          <button type="button" class="chip-btn" data-item="Smartphone">Smartphone</button>
+          <button type="button" class="chip-btn" data-item="Bleach">Bleach</button>
+          <button type="button" class="chip-btn" data-item="How to safely dispose of nail polish and acetone?">Nail Polish?</button>
+          <button type="button" class="chip-btn" data-item="Fluorescent CFL & tube bulbs">Fluorescent bulb</button>
+          <button type="button" class="chip-btn" data-item="Aluminum beverage can">Aluminum can</button>
+          <button type="button" class="chip-btn" data-item="Where do old broken headphones and cables go?">Headphones & Cables?</button>
+          <button type="button" class="chip-btn" data-item="Used motor engine oil & filters">Motor oil</button>
+          <button type="button" class="chip-btn" data-item="Glass beverage bottle & jars">Glass jar</button>
+          <button type="button" class="chip-btn" data-item="How to discard half-empty spray paint cans?">Spray Paint?</button>
+          <button type="button" class="chip-btn" data-item="Expired medications & prescription pills">Pills & Medicines?</button>
+        </div>
+      </section>
+
+      <!-- Active Result Display Container -->
+      <section id="result-container" class="result-section" aria-live="polite">
+        <div id="result-content">
+          <!-- Rendered dynamically by app.js -->
+        </div>
+      </section>
+
+      <!-- Common Traps Matrix (Matching Screenshot) -->
+      <div class="scroll-reveal-container reveal-on-scroll">
+        <div class="scroll-reveal-marker">
+          <span>CRITICAL PURITY AUDIT</span>
+        </div>
+        <h3 class="scroll-reveal-title">Common Sorting Traps: 4 Critical Misclassifications</h3>
+        <p class="scroll-reveal-desc">
+          These common household items frequently trigger contamination alerts in municipal material recovery facilities.
+        </p>
+
+        <div class="traps-grid">
+          <div class="trap-card stagger-1">
+            <div class="trap-card-top">
+              <span class="trap-badge-warn">TRAP #1</span>
+              <span class="trap-mat-name">Pizza Box (Grease vs Clean)</span>
+            </div>
+            <div class="trap-split-row">
+              <div class="trap-side trap-incorrect">
+                <span class="trap-tag">INCORRECT: Blue Cart</span>
+                <p>Grease and oils saturate cellulose fibers, destroying paper recycling batch slurry.</p>
+              </div>
+              <div class="trap-side trap-correct">
+                <span class="trap-tag">CORRECT: Green Bin</span>
+                <p>Soiled bottom belongs in composting. Tear off unsoiled clean lid for dry paper recycling.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="trap-card stagger-2">
+            <div class="trap-card-top">
+              <span class="trap-badge-warn">TRAP #2</span>
+              <span class="trap-mat-name">Disposable Coffee Cups</span>
+            </div>
+            <div class="trap-split-row">
+              <div class="trap-side trap-incorrect">
+                <span class="trap-tag">INCORRECT: Blue Cart</span>
+                <p>Paper cups are lined with a fused polyethylene plastic film that standard hydropulpers cannot separate.</p>
+              </div>
+              <div class="trap-side trap-correct">
+                <span class="trap-tag">CORRECT: Landfill / Trash</span>
+                <p>Only the cardboard outer sleeve is recyclable. Plastic lid goes into blue cart; cup body goes to landfill.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="trap-card stagger-3">
+            <div class="trap-card-top">
+              <span class="trap-badge-warn">TRAP #3</span>
+              <span class="trap-mat-name">Thermal Cash Receipts</span>
+            </div>
+            <div class="trap-split-row">
+              <div class="trap-side trap-incorrect">
+                <span class="trap-tag">INCORRECT: Blue Cart</span>
+                <p>Coated with chemical Bisphenol A (BPA/BPS) dye activators that cross-contaminate recycled paper.</p>
+              </div>
+              <div class="trap-side trap-correct">
+                <span class="trap-tag">CORRECT: Landfill Trash</span>
+                <p>Do not compost or recycle thermal paper. Request digital e-receipts whenever possible.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="trap-card stagger-4">
+            <div class="trap-card-top">
+              <span class="trap-badge-warn">TRAP #4</span>
+              <span class="trap-mat-name">Lithium-Ion Batteries</span>
+            </div>
+            <div class="trap-split-row">
+              <div class="trap-side trap-incorrect">
+                <span class="trap-tag">INCORRECT: Regular Trash</span>
+                <p>Compactor trucks crush batteries, puncturing polymer separators and causing explosive thermal runaway.</p>
+              </div>
+              <div class="trap-side trap-correct">
+                <span class="trap-tag">CORRECT: Red Depot</span>
+                <p>Tape terminals with clear tape and deliver to certified battery drop-off kiosk or depot.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         TAB 2: CATEGORY GUIDE
+         ========================================================================= -->
+    <div class="tab-pane" id="pane-categories" role="tabpanel" aria-labelledby="tab-btn-categories">
+      <section class="section-container" style="padding-top: 2rem;">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <div class="section-pretitle">Knowledge Base</div>
+            <h2 class="section-title">The Four Core Waste Streams</h2>
+          </div>
+          <p class="section-desc">
+            Separating items at the source ensures purity, prevents chemical hazards, and unlocks high-yield industrial recycling.
+          </p>
+        </div>
+
+        <!-- 2x2 Grid with Refined Geometric Cards -->
+        <div class="categories-grid">
+          <!-- Card 1: Biodegradable -->
+          <article class="category-card cat-card-bio">
+            <div class="cat-card-header">
+              <div class="cat-card-icon-frame">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--bio-text)" stroke-width="2"><path d="M7 20h10"></path><path d="M10 20c5.5-2.5.8-6.4 3-10"></path><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4.1 5.5.8z"></path></svg>
+              </div>
+              <span class="cat-card-bin-tag">Green Bin</span>
+            </div>
+            <div class="cat-card-body">
+              <h3 class="cat-card-name">Biodegradable & Organics</h3>
+              <p class="cat-card-desc">Organic waste that decomposes naturally through microbial respiration, turning into nutrient-rich compost humus.</p>
+              <div class="cat-card-keyitems-title">Key Items:</div>
+              <ul class="cat-card-items-list">
+                <li>Fruit and vegetable peels & cores</li>
+                <li>Coffee grounds and unbleached paper tea bags</li>
+                <li>Garden trimmings, leaves, and cut flowers</li>
+                <li>Greasy pizza box bottoms & food-soiled paper napkins</li>
+              </ul>
+            </div>
+            <div class="cat-card-footer">
+              <button class="cat-filter-btn" type="button" data-filter="biodegradable">Filter Table for Organics &rarr;</button>
+            </div>
+          </article>
+
+          <!-- Card 2: Recyclable -->
+          <article class="category-card cat-card-recycle">
+            <div class="cat-card-header">
+              <div class="cat-card-icon-frame">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--recycle-text)" stroke-width="2"><path d="m7 19-3-3 3-3"></path><path d="M4 16h11a4 4 0 0 0 4-4v-1"></path><path d="m17 5 3 3-3 3"></path><path d="M20 8H9a4 4 0 0 0-4 4v1"></path></svg>
+              </div>
+              <span class="cat-card-bin-tag">Blue Cart</span>
+            </div>
+            <div class="cat-card-body">
+              <h3 class="cat-card-name">Dry Recyclables</h3>
+              <p class="cat-card-desc">Manufactured materials that can be remelted, repulped, and converted into secondary manufacturing commodities.</p>
+              <div class="cat-card-keyitems-title">Key Items:</div>
+              <ul class="cat-card-items-list">
+                <li>Plastic bottles & food containers (PET #1, HDPE #2)</li>
+                <li>Aluminum soda cans & clean tin soup tins</li>
+                <li>Clean corrugated cardboard & dry office paper</li>
+                <li>Rinsed glass jars and beverage bottles</li>
+              </ul>
+            </div>
+            <div class="cat-card-footer">
+              <button class="cat-filter-btn" type="button" data-filter="recyclable">Filter Table for Recyclables &rarr;</button>
+            </div>
+          </article>
+
+          <!-- Card 3: Hazardous -->
+          <article class="category-card cat-card-hazard">
+            <div class="cat-card-header">
+              <div class="cat-card-icon-frame">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--hazard-text)" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              </div>
+              <span class="cat-card-bin-tag">Red Special Depot</span>
+            </div>
+            <div class="cat-card-body">
+              <h3 class="cat-card-name">Household Hazardous Waste</h3>
+              <p class="cat-card-desc">Toxic, flammable, corrosive, or reactive domestic items requiring strict chemical isolation and special treatment.</p>
+              <div class="cat-card-keyitems-title">Key Items:</div>
+              <ul class="cat-card-items-list">
+                <li>Lithium-ion, alkaline, and lead-acid batteries</li>
+                <li>Bleach, disinfectants, and harsh oven cleaners</li>
+                <li>Used motor engine oil, antifreeze, and brake fluids</li>
+                <li>Fluorescent CFL light tubes containing mercury</li>
+              </ul>
+            </div>
+            <div class="cat-card-footer">
+              <button class="cat-filter-btn" type="button" data-filter="hazardous">Filter Table for Hazardous &rarr;</button>
+            </div>
+          </article>
+
+          <!-- Card 4: E-Waste -->
+          <article class="category-card cat-card-ewaste">
+            <div class="cat-card-header">
+              <div class="cat-card-icon-frame">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ewaste-text)" stroke-width="2"><rect width="16" height="16" x="4" y="4" rx="2"></rect><rect width="6" height="6" x="9" y="9" rx="1"></rect><path d="M15 2v2"></path><path d="M15 20v2"></path></svg>
+              </div>
+              <span class="cat-card-bin-tag">Slate Electronic Depot</span>
+            </div>
+            <div class="cat-card-body">
+              <h3 class="cat-card-name">Electronic Waste (WEEE)</h3>
+              <p class="cat-card-desc">Discarded electronic devices with circuit boards, microchips, and rare earth components requiring hydrometallurgical recovery.</p>
+              <div class="cat-card-keyitems-title">Key Items:</div>
+              <ul class="cat-card-items-list">
+                <li>Smartphones, tablets, laptops, and computer towers</li>
+                <li>Power adapters, USB cables, and appliance cords</li>
+                <li>Television monitors and LED displays</li>
+                <li>Audio equipment and domestic microwave ovens</li>
+              </ul>
+            </div>
+            <div class="cat-card-footer">
+              <button class="cat-filter-btn" type="button" data-filter="ewaste">Filter Table for E-Waste &rarr;</button>
+            </div>
+          </article>
+        </div>
+
+        <!-- Directory Table inside Category Guide -->
+        <div style="margin-top: 4rem;">
+          <div class="section-header">
+            <div>
+              <div class="section-pretitle">Verified Database</div>
+              <h3 class="section-title" style="font-size: 1.8rem;">Item Directory</h3>
+            </div>
+            <p class="section-desc" id="directory-count">Loading Verified Domestic Database...</p>
+          </div>
+
+          <div class="directory-toolbar">
+            <div class="category-filter-tabs">
+              <button type="button" class="tab-btn active" data-cat="all">All Items</button>
+              <button type="button" class="tab-btn" data-cat="biodegradable">Biodegradable</button>
+              <button type="button" class="tab-btn" data-cat="recyclable">Recyclable</button>
+              <button type="button" class="tab-btn" data-cat="hazardous">Hazardous</button>
+              <button type="button" class="tab-btn" data-cat="ewaste">E-Waste</button>
+            </div>
+            <input type="text" id="table-filter-input" class="table-filter-input" placeholder="Search database rows..." aria-label="Filter directory table">
+          </div>
+
+          <div class="directory-table-container">
+            <table class="directory-table">
+              <thead>
+                <tr>
+                  <th>Item Description</th>
+                  <th>Category</th>
+                  <th>Disposal Stream</th>
+                  <th>Disposal Protocol</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="directory-table-body">
+                <!-- Dynamically populated via script -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- =========================================================================
+         TAB 3: WHY IT MATTERS (DETAILED 12-STEP TEMPORAL PERSISTENCE SCALE)
+         ========================================================================= -->
+    <div class="tab-pane" id="pane-matters" role="tabpanel" aria-labelledby="tab-btn-matters">
+      <section class="section-container" style="padding-top: 2rem;">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <div class="section-pretitle">Environmental Geochronology</div>
+            <h2 class="section-title">Material Degradation Chronology (12 Key Milestones)</h2>
+          </div>
+          <p class="section-desc">
+            Empirical landfill persistence scale from days to geological epochs. Scrub or click any tick to inspect molecular vectors, microplastics, and recovery yield.
+          </p>
+        </div>
+
+        <!-- Detailed 12-Milestone Scrubber -->
+        <div class="timeline-scrubber-wrapper">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+              <span style="font-size: 0.725rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">TEMPORAL PERSISTENCE SCALE</span>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">12 Chronological Degradation Epochs</div>
+            </div>
+            <span id="timeline-age-label" style="font-size: 1.3rem; font-weight: 800; color: var(--bio-text);">450 to 1,000 Years Persistence</span>
+          </div>
+
+          <input type="range" id="degrade-range" min="0" max="11" step="1" value="8" class="degrade-range-slider" aria-label="Degradation timeline slider">
+
+          <div class="timeline-ticks-container">
+            <span class="timeline-tick-label" data-step-idx="0">2 Wks</span>
+            <span class="timeline-tick-label" data-step-idx="1">2 Mos</span>
+            <span class="timeline-tick-label" data-step-idx="2">1-5 Yrs</span>
+            <span class="timeline-tick-label" data-step-idx="3">10 Yrs</span>
+            <span class="timeline-tick-label" data-step-idx="4">45 Yrs</span>
+            <span class="timeline-tick-label" data-step-idx="5">75 Yrs</span>
+            <span class="timeline-tick-label" data-step-idx="6">350 Yrs</span>
+            <span class="timeline-tick-label" data-step-idx="7">475 Yrs</span>
+            <span class="timeline-tick-label active" data-step-idx="8">650 Yrs</span>
+            <span class="timeline-tick-label" data-step-idx="9">800 Yrs</span>
+            <span class="timeline-tick-label" data-step-idx="10">1.2K Yrs</span>
+            <span class="timeline-tick-label" data-step-idx="11">1M+ Yrs</span>
+          </div>
+        </div>
+
+        <div class="degrade-inspector-grid">
+          <!-- Left Visual Inspection Card -->
+          <div class="degrade-visual-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-faint); padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+              <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700;">BIO-GEO-09</span>
+              <span id="degrade-title-short" style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary);">PET Plastic Beverage Bottle</span>
+            </div>
+            <div id="degrade-canvas" style="height: 180px; display: flex; align-items: center; justify-content: center;">
+              <!-- Svg dynamically rendered in app.js -->
+            </div>
+            <div class="degrade-submetrics-row">
+              <div><strong>Half-Life:</strong> <span id="degrade-sub-halflife" style="color: var(--text-primary);">650 Yrs</span></div>
+              <div><strong>Microplastics:</strong> <span id="degrade-sub-microplastics" style="color: var(--hazard-text);">Critical Oceanic</span></div>
+              <div><strong>Recovery:</strong> <span id="degrade-sub-recovery" style="color: var(--bio-text);">92% Pelletized</span></div>
+            </div>
+          </div>
+
+          <!-- Right Telemetry Telemetry Card -->
+          <div class="degrade-telemetry-card">
+            <h3 id="degrade-heading" style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">PET Plastic Water Bottle</h3>
+            <p id="degrade-desc" style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.55; margin-bottom: 1.25rem;">
+              Resists environmental enzymatic breakdown. Solar UV photo-degradation breaks polymer chains into hazardous microplastics that contaminate groundwater.
+            </p>
+            <div class="degrade-metrics-grid">
+              <div class="degrade-metric-box">
+                <span style="font-size: 0.75rem; color: var(--text-secondary); display: block;">Landfill Duration</span>
+                <strong id="degrade-dur-metric" style="font-size: 1rem; color: var(--text-primary);">450 to 1,000 Years</strong>
+              </div>
+              <div class="degrade-metric-box">
+                <span style="font-size: 0.75rem; color: var(--text-secondary); display: block;">Hazard Factor</span>
+                <strong id="degrade-haz-metric" style="font-size: 0.95rem; color: var(--hazard-text);">Critical Microplastic Vector</strong>
+              </div>
+              <div class="degrade-metric-box">
+                <span style="font-size: 0.75rem; color: var(--text-secondary); display: block;">Primary Energy Saved</span>
+                <strong id="degrade-nrg-metric" style="font-size: 1rem; color: var(--bio-text);">88% Saved</strong>
+              </div>
+              <div class="degrade-metric-box">
+                <span style="font-size: 0.75rem; color: var(--text-secondary); display: block;">Preferred Stream</span>
+                <strong id="degrade-stm-metric" style="font-size: 1rem; color: var(--recycle-text);">Blue Cart (PET #1)</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Material Flow Cards -->
+        <div style="margin-top: 4rem;">
+          <div class="section-header">
+            <div>
+              <div class="section-pretitle">Closed-Loop Architecture</div>
+              <h3 class="section-title" style="font-size: 1.8rem;">Material Recovery Lifecycle</h3>
+            </div>
+            <p class="section-desc">
+              From residential source to secondary commodities. High-purity sorting diverts materials away from landfill leachate plumes.
+            </p>
+          </div>
+
+          <div class="flow-schematic-grid">
+            <div class="flow-stage-card">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary); font-weight: 700;">
+                <span>STAGE 01</span><span>ORIGIN</span>
+              </div>
+              <div class="flow-blueprint-canvas">
+                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+              </div>
+              <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem;">Point-of-Generation</h4>
+              <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5;">Items are drained, rinsed, unlabelled, and placed into designated bins at home.</p>
+            </div>
+
+            <div class="flow-stage-card">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary); font-weight: 700;">
+                <span>STAGE 02</span><span>INTAKE</span>
+              </div>
+              <div class="flow-blueprint-canvas">
+                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              </div>
+              <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem;">Sensor Sorting</h4>
+              <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5;">Near-infrared spectrometers and eddy current magnets isolate rigid plastics, cans, and metals.</p>
+            </div>
+
+            <div class="flow-stage-card">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary); font-weight: 700;">
+                <span>STAGE 03</span><span>REFINING</span>
+              </div>
+              <div class="flow-blueprint-canvas">
+                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 2v20"></path><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              </div>
+              <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem;">Transformation</h4>
+              <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5;">Organics undergo aerobic digestion into humus; electronic boards undergo hydrometallurgical refining.</p>
+            </div>
+
+            <div class="flow-stage-card">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary); font-weight: 700;">
+                <span>STAGE 04</span><span>OUTPUT</span>
+              </div>
+              <div class="flow-blueprint-canvas">
+                <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m7 19-3-3 3-3"></path><path d="M4 16h11a4 4 0 0 0 4-4v-1"></path><path d="m17 5 3 3-3 3"></path><path d="M20 8H9a4 4 0 0 0-4 4v1"></path></svg>
+              </div>
+              <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem;">Circular Feedstock</h4>
+              <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.5;">High-purity recycled flakes, soil amendments, and copper ingots return to manufacturing lines.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- =========================================================================
+         TAB 4: GLOBAL DATA & GRAPHS (VERIFIED REAL-WORLD DATA)
+         ========================================================================= -->
+    <div class="tab-pane" id="pane-analytics" role="tabpanel" aria-labelledby="tab-btn-analytics">
+      <section class="section-container" style="padding-top: 2rem;">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <div class="section-pretitle">Verified Empirical Research</div>
+            <h2 class="section-title">Global Waste Analytics & Empirical Impact</h2>
+          </div>
+          <p class="section-desc">
+            Data sourced directly from World Bank What a Waste 2.0, UN Global E-Waste Monitor 2024, and U.S. EPA Sustainable Materials Management reports.
+          </p>
+        </div>
+
+        <!-- Supabase Cloud Live Telemetry Panel -->
+        <div class="supa-telemetry-panel">
+          <div class="supa-telemetry-header">
+            <div class="supa-telemetry-title-group">
+              <svg class="supa-logo-svg" viewBox="0 0 24 24"><path d="M21.362 9.354H12V.396a.396.396 0 0 0-.716-.233L2.203 12.424l-.185.238a.986.986 0 0 0 .78 1.6h9.199v8.958a.396.396 0 0 0 .716.233l9.081-12.261.185-.238a.986.986 0 0 0-.78-1.6z"/></svg>
+              <div>
+                <h3 class="supa-telemetry-title">Supabase Cloud Live Telemetry</h3>
+                <span class="supa-telemetry-subtitle">Real-time persistent community segregation stream & impact metrics &bull; Region: ap-south-1</span>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <span class="status-pulse-dot" style="background:#3ECF8E; box-shadow:0 0 8px #3ECF8E;"></span>
+              <span style="font-size:0.75rem; color:#3ECF8E; font-weight:700;">Postgres Realtime Channel Active</span>
+            </div>
+          </div>
+
+          <div class="supa-metrics-grid">
+            <div class="supa-metric-box">
+              <div id="supa-metric-scans" class="supa-metric-value">12,850</div>
+              <div class="supa-metric-title">Total Verified Scans</div>
+              <div class="supa-metric-desc">Cloud-logged classifications</div>
+            </div>
+            <div class="supa-metric-box">
+              <div id="supa-metric-recycled" class="supa-metric-value" style="color: #4A6B82;">6,120</div>
+              <div class="supa-metric-title">Recyclables Diverted</div>
+              <div class="supa-metric-desc">Paper, PET & Metal sorted</div>
+            </div>
+            <div class="supa-metric-box">
+              <div id="supa-metric-composted" class="supa-metric-value" style="color: #639260;">4,510</div>
+              <div class="supa-metric-title">Organics Composted</div>
+              <div class="supa-metric-desc">Methane avoided in soil</div>
+            </div>
+            <div class="supa-metric-box">
+              <div id="supa-metric-hazardous" class="supa-metric-value" style="color: #E05D52;">2,220</div>
+              <div class="supa-metric-title">Hazardous Diverted</div>
+              <div class="supa-metric-desc">Batteries & E-Waste isolated</div>
+            </div>
+            <div class="supa-metric-box">
+              <div id="supa-metric-co2" class="supa-metric-value" style="color: #3ECF8E;">1,485.4 kg</div>
+              <div class="supa-metric-title">Est. CO2e Conserved</div>
+              <div class="supa-metric-desc">Calculated via EPA factors</div>
+            </div>
+          </div>
+
+          <!-- Live Activity Feed -->
+          <div class="supa-feed-container">
+            <div class="supa-feed-header">
+              <div class="supa-feed-heading">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3ECF8E" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                <span>Live Community Scan Stream (Supabase Realtime)</span>
+              </div>
+              <span style="font-size:0.7rem; color:var(--text-secondary);">Updates in real time</span>
+            </div>
+            <div id="supa-recent-scans-feed" class="supa-feed-list">
+              <!-- Populated dynamically by SupabaseBackendService -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Four Key Metric Cards -->
+        <div class="stats-banner-grid">
+          <div class="stat-metric-card">
+            <div class="stat-metric-number">44%</div>
+            <div class="stat-metric-label">Global MSW is Organic</div>
+            <div class="stat-metric-sub">World Bank: Food and green waste generate significant methane in landfills if unsegregated.</div>
+          </div>
+
+          <div class="stat-metric-card">
+            <div class="stat-metric-number">62 Mt</div>
+            <div class="stat-metric-label">Annual Global E-Waste</div>
+            <div class="stat-metric-sub">UN ITU 2024: A record high e-waste volume with only 22.3% formally recycled worldwide.</div>
+          </div>
+
+          <div class="stat-metric-card">
+            <div class="stat-metric-number">95%</div>
+            <div class="stat-metric-label">Energy Conserved (Al)</div>
+            <div class="stat-metric-sub">EPA: Closed-loop aluminum remelting skips energy-demanding bauxite electrolysis.</div>
+          </div>
+
+          <div class="stat-metric-card">
+            <div class="stat-metric-number">$91 B</div>
+            <div class="stat-metric-label">Embedded Precious Metals</div>
+            <div class="stat-metric-sub">UNEP: Annual economic value of recoverable gold, copper, and iron discarded in e-waste.</div>
+          </div>
+        </div>
+
+        <!-- 2x2 Charts Row Grid -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <h3 class="chart-title">Global Waste Composition by Stream</h3>
+              <span class="chart-subtitle">Municipal Solid Waste (MSW) Share (%)</span>
+            </div>
+            <span class="chart-source-tag">World Bank 2.0</span>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="chart-composition"></canvas>
+          </div>
+        </div>
+
+        <div class="charts-row-grid">
+          <!-- Chart 2: E-Waste Surge vs Collection Gap -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <h3 class="chart-title">Global E-Waste Trajectory (2010–2030)</h3>
+                <span class="chart-subtitle">Generated vs Formally Documented Recycled (Mt)</span>
+              </div>
+              <span class="chart-source-tag">UN E-Waste Monitor</span>
+            </div>
+            <div class="chart-canvas-wrapper">
+              <canvas id="chart-ewaste"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 3: Energy Savings by Material -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <h3 class="chart-title">Closed-Loop Energy Savings by Material</h3>
+                <span class="chart-subtitle">% Energy conserved vs virgin raw material extraction</span>
+              </div>
+              <span class="chart-source-tag">US EPA / DOE</span>
+            </div>
+            <div class="chart-canvas-wrapper">
+              <canvas id="chart-energy"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 4: GHG Emissions Abated -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <h3 class="chart-title">Greenhouse Gas Abatement</h3>
+                <span class="chart-subtitle">Metric tons CO2e avoided per ton recycled</span>
+              </div>
+              <span class="chart-source-tag">EPA WARM Model</span>
+            </div>
+            <div class="chart-canvas-wrapper">
+              <canvas id="chart-ghg"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- =========================================================================
+         TAB 5: 3D BIN LAB & SORTING CHALLENGE
+         ========================================================================= -->
+    <div class="tab-pane" id="pane-lab" role="tabpanel" aria-labelledby="tab-btn-lab">
+      <section class="section-container" style="padding-top: 2rem;">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <div class="section-pretitle">Interactive 3D Simulation & Lab</div>
+            <h2 class="section-title">3D Waste Station & Sorting Simulator</h2>
+          </div>
+          <p class="section-desc">
+            Inspect all four municipal waste bins in full 3D. Click to open hinged lids, orbit the station, and test your segregation reflex in the live mini-game!
+          </p>
+        </div>
+
+        <div class="lab-container">
+          <!-- 3D Three.js Station Viewer -->
+          <div class="canvas-3d-wrapper">
+            <div class="canvas-bins-quickbar">
+              <button type="button" class="btn-bin-quick" data-bin-cat="biodegradable" style="color: var(--bio-text);">Organics</button>
+              <button type="button" class="btn-bin-quick" data-bin-cat="recyclable" style="color: var(--recycle-text);">Recycling</button>
+              <button type="button" class="btn-bin-quick" data-bin-cat="hazardous" style="color: var(--hazard-text);">Hazardous</button>
+              <button type="button" class="btn-bin-quick" data-bin-cat="ewaste" style="color: var(--ewaste-text);">E-Waste</button>
+            </div>
+
+            <div id="canvas-3d-bins"></div>
+
+            <div class="canvas-overlay-instruction">
+              <span>🖱️ Drag to rotate 3D station &bull; Click any bin to lift its lid</span>
+            </div>
+          </div>
+
+          <!-- Interactive Sorting Quiz Challenge -->
+          <div class="sorter-game-card">
+            <div class="quiz-score-header">
+              <div>
+                <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">Sorting Challenge</h3>
+                <span style="font-size: 0.75rem; color: var(--text-secondary);">Test your sorting accuracy</span>
+              </div>
+              <div style="display: flex; gap: 1rem; font-size: 0.85rem; font-weight: 700;">
+                <div>Score: <span id="quiz-score-val" style="color: var(--bio-text);">0</span></div>
+                <div>Streak: <span id="quiz-streak-val" style="color: #e2a050;">0</span></div>
+              </div>
+            </div>
+
+            <div class="quiz-current-item-box">
+              <div id="quiz-item-icon" class="quiz-item-icon">🍕</div>
+              <h4 id="quiz-item-title" class="quiz-item-title">Greasy Pizza Box Bottom</h4>
+              <p id="quiz-item-prompt" class="quiz-item-prompt">Which bin does this item belong to?</p>
+            </div>
+
+            <div class="quiz-options-grid">
+              <button type="button" class="quiz-choice-btn" onclick="handleQuizAnswer('biodegradable')" style="border-left: 3px solid #639260;">
+                Green (Organics)
+              </button>
+              <button type="button" class="quiz-choice-btn" onclick="handleQuizAnswer('recyclable')" style="border-left: 3px solid #4A6B82;">
+                Blue (Recyclable)
+              </button>
+              <button type="button" class="quiz-choice-btn" onclick="handleQuizAnswer('hazardous')" style="border-left: 3px solid #8C4337;">
+                Red (Hazardous)
+              </button>
+              <button type="button" class="quiz-choice-btn" onclick="handleQuizAnswer('ewaste')" style="border-left: 3px solid #7D6656;">
+                Slate (E-Waste)
+              </button>
+            </div>
+
+            <div id="quiz-feedback-box" class="quiz-feedback-box">
+              <!-- Dynamically populated with EPA feedback -->
+            </div>
+
+            <!-- Save Score to Supabase & Live Cloud Leaderboard -->
+            <div class="supa-leaderboard-card">
+              <div class="supa-leaderboard-header">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span style="font-size: 1.1rem;">🏆</span>
+                  <div>
+                    <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin: 0;">Supabase Global Leaderboard</h4>
+                    <span style="font-size: 0.725rem; color: var(--text-secondary);">Real-time high scores persisted to Postgres</span>
+                  </div>
+                </div>
+                <button type="button" id="btn-save-quiz-score" class="search-submit-btn" style="padding: 0.35rem 0.85rem; font-size: 0.775rem;">
+                  Save My Score
+                </button>
+              </div>
+              <div id="supa-leaderboard-rows" class="supa-leaderboard-list">
+                <!-- Dynamically rendered from Supabase -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Application Footer -->
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <div>
+        <h4 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--text-primary); margin-bottom: 0.75rem;">System Architecture</h4>
+        <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
+          Client-side waste classifier with instant autocomplete, fuzzy matching heuristics, and integrated Gemini 3.5 AI reasoning.
+        </p>
+      </div>
+
+      <div>
+        <h4 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--text-primary); margin-bottom: 0.75rem;">Color Bin Concordance</h4>
+        <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
+          <strong style="color: var(--bio-text);">Deep Moss:</strong> Compost & Organics<br>
+          <strong style="color: var(--recycle-text);">Ocean Blue:</strong> Recyclables (Paper, Cans, Plastics)<br>
+          <strong style="color: var(--hazard-text);">Terracotta:</strong> Household Hazardous Waste<br>
+          <strong style="color: var(--ewaste-text);">Deep Taupe:</strong> Electronic Devices & Batteries
+        </p>
+      </div>
+
+      <div>
+        <h4 style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--text-primary); margin-bottom: 0.75rem;">Environmental Impact</h4>
+        <p style="font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6;">
+          Proper segregation prevents methane generation in landfills and conserves up to 95% of primary energy in metals smelting.
+        </p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>Smart Waste Segregation Assistant</span>
+      <span>Dim / Twilight Aesthetic &bull; Deep Earth Palette</span>
+    </div>
+  </footer>
+
+  <!-- =========================================================================
+       AI WASTE VISION SCANNER MODAL DIALOG
+       ========================================================================= -->
+  <div id="ai-scanner-modal" class="scanner-modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="scanner-modal-title">
+    <div class="scanner-modal-dialog">
+      <div class="scanner-modal-header">
+        <div class="scanner-modal-title-group">
+          <span class="status-pulse-dot" style="width: 8px; height: 8px;" aria-hidden="true"></span>
+          <h3 id="scanner-modal-title" class="scanner-modal-title">AI Waste Vision Scanner</h3>
+          <span class="ai-panel-badge">Gemini 3.5 Flash</span>
+        </div>
+        <button type="button" id="scanner-modal-close-btn" class="scanner-modal-close-btn" aria-label="Close Scanner">&times;</button>
+      </div>
+
+      <!-- Modal Tabs: Upload, Camera, Demo Presets -->
+      <div class="scanner-modal-tabs">
+        <button type="button" class="scanner-tab-btn is-active" data-scanner-tab="upload">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <span>Upload Photo</span>
+        </button>
+        <button type="button" class="scanner-tab-btn" data-scanner-tab="camera">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+          <span>Live Camera</span>
+        </button>
+        <button type="button" class="scanner-tab-btn" data-scanner-tab="presets">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          <span>Demo Waste Items</span>
+        </button>
+      </div>
+
+      <div class="scanner-modal-body">
+        <!-- Tab 1: Upload Dropzone -->
+        <div id="scanner-view-upload">
+          <input type="file" id="scanner-modal-file-input" accept="image/*" style="display: none;">
+          <div id="scanner-dropzone" class="scanner-dropzone">
+            <div class="scanner-dropzone-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+            </div>
+            <div class="scanner-dropzone-prompt">Drag & drop photo of waste item here</div>
+            <div class="scanner-dropzone-sub">Supports JPG, PNG, WEBP &bull; Paste directly with Ctrl+V</div>
+            <button type="button" id="scanner-dropzone-btn" class="scanner-dropzone-upload-btn" style="background: linear-gradient(180deg, #178582 0%, #0F6674 100%) !important; color: #FFFFFF !important; border: 1px solid #23A39B !important;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #FFFFFF !important;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span style="color: #FFFFFF !important;">Browse & Upload Photo</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tab 2: Live Camera Viewfinder -->
+        <div id="scanner-view-camera" class="scanner-camera-container">
+          <div class="scanner-camera-status-bar">
+            <span class="status-pulse-dot" style="width: 7px; height: 7px;" aria-hidden="true"></span>
+            <span id="camera-status-text">Device Camera Active &bull; Point at item & click to upload</span>
+          </div>
+
+          <div class="scanner-viewfinder-box" id="scanner-viewfinder-box" title="Click anywhere on camera to click & upload directly">
+            <video id="scanner-camera-video" playsinline autoplay muted></video>
+            <div class="scanner-hud-corners"></div>
+            <div class="scanner-hud-center-cross"></div>
+            <div id="camera-flash-overlay" class="camera-flash-overlay"></div>
+            <div id="camera-countdown-display" class="camera-countdown-display" style="display:none;">3</div>
+            <div class="camera-click-hint"><span>📸 Tap camera screen or shutter button to snap & upload</span></div>
+          </div>
+
+          <div class="scanner-cam-controls">
+            <button type="button" id="scanner-flip-cam-btn" class="scanner-cam-tool-btn" title="Switch between rear and front camera">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 10c0-4.4-3.6-8-8-8s-8 3.6-8 8h3l-4 4-4-4h3c0-5.5 4.5-10 10-10s10 4.5 10 10h-2z"></path>
+                <path d="M4 14c0 4.4 3.6 8 8 8s8-3.6 8-8h-3l4-4 4 4h-3c0 5.5-4.5 10-10 10S4 19.5 4 14h2z"></path>
+              </svg>
+              <span>Flip Cam</span>
+            </button>
+
+            <button type="button" id="scanner-capture-btn" class="scanner-capture-btn live-capture-primary" title="Snap photo from device camera and upload directly to EcoSage AI">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <circle cx="12" cy="12" r="4"></circle>
+              </svg>
+              <span>Click Photo & Upload</span>
+            </button>
+
+            <button type="button" id="scanner-timer-btn" class="scanner-cam-tool-btn" title="3-Second countdown before auto-snap">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span id="timer-btn-label">3s Timer</span>
+            </button>
+          </div>
+
+          <div id="scanner-camera-fallback-slot" style="display:none; width: 100%;"></div>
+        </div>
+
+        <!-- Tab 3: Demo Items -->
+        <div id="scanner-view-presets" class="scanner-presets-container">
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 0.5rem;">Select a household waste sample to test visual AI classification immediately:</p>
+          <div class="scanner-presets-grid">
+            <div class="scanner-preset-card" data-preset-type="bottle">
+              <span class="scanner-preset-icon">🥤</span>
+              <span class="scanner-preset-label">Plastic Bottle</span>
+              <span class="scanner-preset-stream">[Recyclable]</span>
+            </div>
+            <div class="scanner-preset-card" data-preset-type="pizza">
+              <span class="scanner-preset-icon">🍕</span>
+              <span class="scanner-preset-label">Pizza Box (Greasy)</span>
+              <span class="scanner-preset-stream">[Organic Compost]</span>
+            </div>
+            <div class="scanner-preset-card" data-preset-type="battery">
+              <span class="scanner-preset-icon">🔋</span>
+              <span class="scanner-preset-label">Lithium Battery</span>
+              <span class="scanner-preset-stream">[Hazardous Depot]</span>
+            </div>
+            <div class="scanner-preset-card" data-preset-type="banana">
+              <span class="scanner-preset-icon">🍌</span>
+              <span class="scanner-preset-label">Banana Peel</span>
+              <span class="scanner-preset-stream">[Compost Bin]</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Image Preview & Confirmation Card (With Glowing Laser Line) -->
+        <div id="scanner-preview-card" class="scanner-preview-card">
+          <div class="scanner-preview-image-wrap">
+            <div class="scanner-laser-line"></div>
+            <img id="scanner-preview-img" src="" alt="Ready to scan">
+          </div>
+          <div class="scanner-preview-actions">
+            <button type="button" id="scanner-start-btn" class="scanner-start-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"></path></svg>
+              <span>Classify with EcoSage AI</span>
+            </button>
+            <button type="button" id="scanner-stage-to-chat-btn" class="scanner-cancel-btn" style="border-color: #23A39B; color: #FFFFFF; background: rgba(23, 133, 130, 0.25);">
+              <span>Attach to Chatbox</span>
+            </button>
+            <button type="button" id="scanner-cancel-btn" class="scanner-cancel-btn">
+              <span>Retake / Choose Another</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Modular Scripts with cache-busting -->
+  <script src="js/waste-data.js?v=4.2"></script>
+  <script src="js/real-data.js?v=4.2"></script>
+  <script src="js/supabase-client.js?v=4.2"></script>
+  <script src="js/charts.js?v=4.2"></script>
+  <script src="js/three-scene.js?v=4.2"></script>
+  <script src="js/ai-chat.js?v=4.2"></script>
+  <script src="js/scanner.js?v=4.2"></script>
+  <script src="js/app.js?v=4.2"></script>
+</body>
+</html>
