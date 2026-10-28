@@ -1,0 +1,244 @@
+/* ==========================================================================
+   SMART WASTE SEGREGATION ASSISTANT
+   Micro-Animations, 2D/3D Transitions & Scroll Effects
+   ========================================================================== */
+
+/* 1. Smooth Slide & Liquid Tab Transitions */
+@keyframes liquidDrift {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.995);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.liquid-enter {
+  animation: liquidDrift 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 2. Scroll-Triggered Reveal Animations */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger Delays for child cards & table rows */
+.stagger-1 { transition-delay: 0.06s; }
+.stagger-2 { transition-delay: 0.12s; }
+.stagger-3 { transition-delay: 0.18s; }
+.stagger-4 { transition-delay: 0.24s; }
+
+/* 3. Subtle Status Pulse Glow */
+@keyframes ecoPulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(99, 146, 96, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 7px rgba(99, 146, 96, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(99, 146, 96, 0);
+  }
+}
+
+.status-pulse-dot {
+  animation: ecoPulse 2.4s infinite ease-in-out;
+}
+
+/* AI Launcher Floating Pulse */
+@keyframes aiPulseGlow {
+  0%, 100% {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35), 0 0 0 0 rgba(99, 146, 96, 0.4);
+  }
+  50% {
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45), 0 0 0 8px rgba(99, 146, 96, 0);
+  }
+}
+
+.ai-pulse {
+  animation: aiPulseGlow 3s infinite ease-in-out;
+}
+
+/* 4. Hover Micro-Interactions (Sharp architectural tilt) */
+.hover-lift {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.32);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 5. Glowing Accent Borders */
+.glow-on-active {
+  position: relative;
+}
+
+.glow-on-active::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.15), transparent 70%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.glow-on-active:hover::after {
+  opacity: 1;
+}
+
+/* 6. Sorting Quiz Animations */
+@keyframes itemDropSuccess {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.04) translateY(-4px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+.anim-success {
+  animation: itemDropSuccess 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.anim-shake {
+  animation: shakeError 0.38s ease-in-out;
+}
+
+/* 7. Typing Indicator Bounce */
+@keyframes typingBounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-5px);
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--bio-text);
+  display: inline-block;
+  animation: typingBounce 1.2s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* 8. 2D Particle Drift in SVGs */
+@keyframes particleFloat {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
+  50% { transform: translateY(-8px) scale(1.15); opacity: 1; }
+}
+
+.svg-float-particle {
+  animation: particleFloat 3.5s infinite ease-in-out;
+}
+
+.svg-float-delay-1 { animation-delay: 0.7s; }
+.svg-float-delay-2 { animation-delay: 1.4s; }
+.svg-float-delay-3 { animation-delay: 2.1s; }
+
+/* 9. Modern Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e211e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333833;
+  border-radius: 2px;
+  border: 1px solid #1e211e;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #464d46;
+}
+
+/* 10. AI Vision Scanner & Laser Sweep Animations */
+@keyframes scannerLaserSweep {
+  0% {
+    top: 2%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 94%;
+    opacity: 1;
+  }
+  100% {
+    top: 2%;
+    opacity: 0.8;
+  }
+}
+
+@keyframes scannerLaserGlow {
+  0%, 100% {
+    box-shadow: 0 0 12px #639260, 0 0 24px rgba(99, 146, 96, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 20px #85b882, 0 0 36px rgba(133, 184, 130, 0.9);
+  }
+}
+
+@keyframes scannerHudPulse {
+  0%, 100% {
+    border-color: rgba(99, 146, 96, 0.4);
+    box-shadow: inset 0 0 15px rgba(99, 146, 96, 0.1);
+  }
+  50% {
+    border-color: rgba(99, 146, 96, 0.9);
+    box-shadow: inset 0 0 25px rgba(99, 146, 96, 0.25);
+  }
+}
+
+@keyframes scannerRadarSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.scanner-laser-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #85b882 15%, #ffffff 50%, #85b882 85%, transparent);
+  box-shadow: 0 0 16px #639260, 0 0 28px rgba(99, 146, 96, 0.8);
+  animation: scannerLaserSweep 2.2s infinite ease-in-out, scannerLaserGlow 1.8s infinite ease-in-out;
+  z-index: 10;
+  pointer-events: none;
+}
